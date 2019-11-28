@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+	position: relative;
+	font-size: 20px;
+}
+
+th {
+	width: 90px;
+	border: 2px solid white;
+	text-align: center;
+}
+
+table {
+	position: relative;
+	background-color: white;
+}
+.vertical{
+display:none;
+}
+
+#div {
+	margin: auto;
+	background-color: white;
+	height: 50%;
+	max-width: 60%;
+}
+
+hr {
+	background-color: black;
+}
+
+.borderClass{
+	border : 1px solid black;
+}
+
+td {
+	vertical-align: top;
+	padding: 5px;
+}
+
+input[type="radio"] {
+	vertical-align: bottom;
+	width: 17px;
+	height: 17px;
+}
+
+input[type="checkbox"] {
+	vertical-align: bottom;
+	width: 17px;
+	height: 17px;
+}
+
+#Fname {
+	
+	font-size: 20px;
+	/* background-color: #85d8ed; */
+}
+
+#fas{
+	/* background:black; */	
+	transform:rotate(90deg);
+}
+#alternate{
+	background-color:black;
+	padding:8px;
+	display:inline;
+	
+}
+#vert{
+opacity:0.5;
+ /* box-shadow: 10px 12px 0.5rem #85d8ed;
+	background:white;
+outline-offset: -30px; */
+}
+#content-mgmt{
+		float:left;
+		background-color:#bcf6f7;
+		text-align:center;
+		padding:15px;
+}
+
+.editor{
+	text-align:right;
+}
+.ui-dialog-titlebar-close {
+    visibility: hidden;
+}
+
+div.ui-dialog {position:fixed;}
+</style>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<meta charset="UTF-8">
+<title>Surveys</title>
+<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+</head>
+<body>
+	
+	<strong><span id=Fname> <a href="/logout">logout</a></span></strong><br>
+	<div id="content-mgmt"><h3 style="vertical-align:top; margin:0px;">Content Management</h3><br>
+	<a href="/questionSavePage">Add questions</a><br><br>
+	<a href="/graph">See graph</a><br><br>
+	<a href="/overall">See Report</a>
+	</div>	
+  	<div id="edit-dialog"></div>
+  	
+  	
+  	<!-- --Script started-- -->
+		<script type="text/javascript" src="../src/form2js.js"></script>
+		<script type="text/javascript">
+	var SendData;
+		function test(decide){
+			var content=[];
+			var formData = form2js('testForm', '.', true,
+					function(node)
+					{
+						if (node.id && node.id.match(/callbackTest/))
+						{
+							return { name: node.id, value: node.innerHTML };
+						}
+					});
+			 SendData = JSON.stringify(formData);
+			 //alert(SendData);
+			if(decide == 1){
+				if(SendData!= "{}"){
+					$.ajax({
+						type : "POST",
+						url : "/delete",
+						data : SendData,
+						//dataType : "json",
+						contentType : 'application/json',					
+						success:function(data){
+								//alert(JSON.stringify(data));
+								location.reload();
+								//$("body").html(data);
+						} 
+					});
+				}else alert("nodata");
+			}else{
+
+			
+			
+			 if(formData.question!= null)
+				 {
+				 	for(i=0;i<formData.question.length;i++)
+				 		{
+				 			//alert($("#question"+formData.question[i]).text());
+				 			content.push({"key":"#question"+formData.question[i],"value":""+$("#question"+formData.question[i]).text()});
+				 		}
+				 
+				 }
+			 
+			 if(formData.answer!= null)
+			 {
+			 	for(i=0;i<formData.answer.length;i++)
+			 		{
+			 			content.push({"key":"#answer"+formData.answer[i],"value":""+$("#answer"+formData.answer[i]).text()});
+			 		}
+			 
+			 }
+			 
+			 if(formData.subquestion!= null)
+			 {
+			 	for(i=0;i<formData.subquestion.length;i++)
+			 		{
+			 			content.push({"key":"#sub"+formData.subquestion[i],"value":""+$("#subquestion"+formData.subquestion[i]).text()});
+			 		}
+			 
+			 }
+			 if(content.length>4){
+				 //alert(content);
+				  alert("Please Update no more than 4 field");
+				
+			 }else if(content.length <=0){
+				 alert("Please Select at least one item to edit ");
+			 }else{
+				 edit(content,formData);  
+			 }
+			 
+		}
+	}
+				
+			 
+			 function edit(content,formData){
+				 
+			 $("#edit-dialog").show();
+			 
+			 for(i=0;i<content.length;i++){
+				 if(content[i].key.includes('question')){
+					var dat = content[i].key.split("question")
+					 $("#edit-dialog").append("<textarea cols=45 name=question."+dat[1]+" rows=4 id="+content[i].key+" style='resize:none'>"+content[i].value+"</textarea>"); 
+				 }else if(content[i].key.includes('answer')){
+						var dat = content[i].key.split("answer")
+						 $("#edit-dialog").append("<textarea cols=50 name=answer."+dat[1]+" rows=4 id="+content[i].key+" style='resize:none'>"+content[i].value+"</textarea>"); 
+					 } else if(content[i].key.includes('sub')){
+							var dat = content[i].key.split("sub")
+							 $("#edit-dialog").append("<textarea cols=50 name=subquestion."+dat[1]+" rows=4 id="+content[i].key+" style='resize:none'>"+content[i].value+"</textarea>"); 
+						 }
+				
+			 }
+				$("#edit-dialog").dialog({	
+						
+						width: 600,
+						height: 'auto',
+						draggable : false,					
+						title : "Edit:",
+						modal : true,
+						resizable:false,
+						buttons : [
+							{
+								text : "Update",
+								click : function(){
+									testing();
+									alert("Update Successfull!!!");
+									location.reload();
+								}
+								
+							},
+							{
+								text : "Cancel",
+								click : function() {
+									$("#edit-dialog").html("");
+									$(this).dialog("close");
+									
+								}
+								}
+							
+						]					
+					});
+				  
+		 }
+		
+			
+	
+				function testing(){
+					
+					var formData = form2js('edit-dialog', '.', true,
+							function(node)
+							{
+								if (node.id && node.id.match(/callbackTest/))
+								{
+									return { name: node.id, value: node.innerHTML };
+								}
+							});
+					console.log(formData);
+					
+					 if(formData.question!= null)
+					 {
+						  questions=[];
+						 for(var key in formData.question ){
+							 questions.push(JSON.parse('{ "qId":'+key+',"qDescription":"'+formData.question[key]+'"}'));
+							
+						 
+						 }
+						 questions=JSON.stringify(questions);
+						 $.ajax({
+								type : "POST",
+								url : "/updateQuestion",
+								data :questions,
+								//dataType : "json",
+								contentType :'application/json',					
+								success:function(data){
+										//alert(JSON.stringify(data));
+										//alert(JSON.stringify(data));
+										//location.reload();
+										//$("body").html(data);
+								}								 
+							});
+					 }
+				
+				 if(formData.answer != null)
+				 {
+					 var answers=[];
+					 for(var key in formData.answer ){
+						 answers.push(JSON.parse('{ "aId":'+key+',"aDescription":"'+formData.answer[key]+'"}'));
+						
+					 
+					 }
+					 answers = JSON.stringify(answers)
+					  $.ajax({
+						type : "POST",
+						url : "/updateAnswers",
+						data :answers,
+						//dataType : "json",
+						contentType :'application/json',					
+						success:function(data){
+								//alert(JSON.stringify(data));
+								//alert(JSON.stringify(data));
+								//location.reload();
+								//$("body").html(data);
+						}
+					  });
+				 
+				 }
+				 
+				 if(formData.subquestion!= null)
+				 {
+					 var subquestions=[];
+					 for(var key in formData.subquestion){
+						 subquestions.push(JSON.parse('{ "id":'+key+',"qDescription":"'+formData.subquestion[key]+'"}'));
+						
+					 
+					 }
+					 subquestions = (JSON.stringify(subquestions));
+					 $.ajax({
+						type : "POST",
+						url : "/updateSubQuestions",
+						data :subquestions,
+						//dataType : "json",
+						contentType :'application/json',					
+						success:function(data){
+								//alert(JSON.stringify(data));
+								//alert(JSON.stringify(data));
+								//location.reload();
+								//$("body").html(data);
+						}
+					  });
+					 
+				 
+				 }
+				 
+		 }
+				 	
+	</script>
+<div id="div">
+	<h1 align=center>Modify Survey Data</h1>
+		<form id="testForm">
+
+			<table class="table">
+
+
+			</table>
+			
+		</form>
+</div>
+	
+	<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script type="text/javascript">
+	 
+	
+		$(document)
+				.ready(
+						function() {
+						 var align =0;
+						 $("#edit-dialog").hide();
+						$.get("/getAuthenticatedFname", function(data) {
+								$("#Fname").prepend("User: " + data);
+							});
+							$.get("/getAll",function(data) {
+												//data = jQuery.parseJSON(data);
+												// $( "div" ).append( JSON.stringfy(data));
+												for (j = 0; j < data.length; j++) {
+													var x = '<tr><td><td class="editor" ><button type = button class="edit" onclick="test(0)"><i class="fas fa-edit"></i></button><td><button name="" type=button class="delete" onclick="test(1)"><i class="fas fa-trash"></i> </button></tr><tr class="border">	<td>'
+														x+=	'&nbsp<td id="question'+data[j].qId+'">';
+															
+													x += data[j].qDescription
+															+ '<td align=center><input class="check"  type="checkbox" name=question[] value="'+data[j].qId+'" ></tr>	';
+													if (data[j].aType != "multiple") {
+															
+														
+													
+														for (i = 0; i < data[j].answer.length; i++) {
+																
+															x += '<tr ><td><td class="horizontal" id="answer'+data[j].answer[i].aId+'">'
+																	+ data[j].answer[i].aDescription
+																	+ '<td class="horizontal" align=center><input class="check" type="checkbox" name="answer[]" value="'+data[j].answer[i].aId+'"></tr>';
+														}
+														
+														x += '	<tr><td colspan="3"><hr></tr>';
+													} else {
+														if(data[j].subQuestion.length != 0){
+														x += '<tr><td></td><td><table   ><tr><td><td>';
+														for(t=0 ;t<data[j].subQuestion[0].answer.length; t++){
+															x+='<td align=center><input class="subAnsCheckbox" type="checkbox" name="answer[]" value="'+data[j].subQuestion[0].answer[t].aId+'">';
+														}
+														x+='</tr>';
+														var ans;
+														for (i = 0; i < data[j].subQuestion.length; i++) {
+															if (i == 0) {
+																x += '<tr><th colspan=2 style="background-color:#85d8ed; width:40%" >';
+																//alert(data[j].subQuestion[i].answer[0].adescription);
+																ans = data[j].subQuestion[i].answer.length;
+																for (k = 0; k < ans; k++) {
+
+																	x += '<th style="background-color:#85d8ed" id="answer'+data[j].subQuestion[i].answer[k].aId+'"> '
+																			+ data[j].subQuestion[i].answer[k].aDescription
+																			+ '</th>';
+																}
+																x += '</tr>';
+															}
+															//alert(data[j].subQuestion[i].answer[i].adescription);
+															x += '<tr><td><input  type="checkbox" name="subquestion[]" value="'+data[j].subQuestion[i].id+'" class="subQues"><td id="subquestion'+data[j].subQuestion[i].id+'">'
+																	+ data[j].subQuestion[i].qDescription
+																	+ '</td></td>';
+															for (k = 0; k < ans; k++) {
+
+																x += '<td></td>';
+															}
+															//x += '</td>';
+															x += '</tr>';
+
+														}
+														x += '</table></td></tr>';
+													}
+														x += '<tr><td colspan="3"><hr></tr>';
+													
+												}
+													//x += '<tr><td><td align="right"><h3 align="left"><span style="vertical-align:top">Comments and suggestions: </span><textarea maxlength="255" name="commentC'+data[j].qId+'" cols="50" rows="3" style="border-top:none;border-right:none;border-left:none; " placeholder="Type your comments here"></textarea></h3></tr>';
+													$(".table").append(x);
+													//$("table").append(x);
+													//alert( );
+
+												}
+
+											});
+			
+						});
+		
+		$(".table").on("click",".check",function(){
+			$(this).parent().prev().toggleClass("borderClass");
+		});
+			
+		$(".table").on("click",".subQues",function(){
+			$(this).parent().next().toggleClass("borderClass");
+			
+			
+		});
+		
+		$(".table").on("click",".subAnsCheckbox",function(){
+			var cellIndex = $(this).parent().index()-1;
+			//alert(cellIndex);
+			  $(this).closest('tr').next().children().eq(cellIndex).toggleClass("borderClass");
+			
+			
+		});
+		
+	</script>
+</body>
+</html>
